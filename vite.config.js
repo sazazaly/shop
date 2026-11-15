@@ -48,5 +48,5 @@ function payApi(SECRET) {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  return { plugins: [react(), payApi(env.TOSS_SECRET_KEY || DOCS_SECRET), seo({ site: env.SITE_URL || 'https://shop.example.com', naverVerify: env.NAVER_SITE_VERIFICATION, googleVerify: env.GOOGLE_SITE_VERIFICATION })] }
+  return { plugins: [react(), payApi(env.TOSS_SECRET_KEY || DOCS_SECRET), seo({ site: env.SITE_URL || process.env.SITE_URL || 'https://shop-jade-eta-58.vercel.app', naverVerify: env.NAVER_SITE_VERIFICATION, googleVerify: env.GOOGLE_SITE_VERIFICATION })] }
 })
