@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { randomUUID } from 'node:crypto'
 import { products } from './src/products.js'
+import { seo } from './seo.js'
 
 // 토스 공식 샘플의 문서용 테스트 시크릿 키 (공개 키, 실제 청구 없음). 내 키는 shop/.env 로 덮어쓰기.
 const DOCS_SECRET = 'test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6'
@@ -47,5 +48,5 @@ function payApi(SECRET) {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  return { plugins: [react(), payApi(env.TOSS_SECRET_KEY || DOCS_SECRET)] }
+  return { plugins: [react(), payApi(env.TOSS_SECRET_KEY || DOCS_SECRET), seo({ site: env.SITE_URL || 'https://shop.example.com', naverVerify: env.NAVER_SITE_VERIFICATION, googleVerify: env.GOOGLE_SITE_VERIFICATION })] }
 })

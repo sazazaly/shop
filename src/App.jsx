@@ -17,7 +17,7 @@ function Thumb({ p, color }) {
 
 export default function App() {
   const path = location.pathname
-  const [view, setView] = useState({ name: 'list' })
+  const [view, setView] = useState(() => { const m = location.pathname.match(/^\/product\/(\d+)\/?$/); return m && products.some((x) => x.id === +m[1]) ? { name: 'detail', id: +m[1] } : { name: 'list' } })
   const [cart, setCart] = useLocal('cart', [])
   const [wish, setWish] = useLocal('wish', [])
   const [toast, setToast] = useState('')
@@ -33,7 +33,16 @@ export default function App() {
     say('장바구니에 담았어요')
   }
   const clearCart = () => setCart([])
-  const go = (v) => { setView(v); window.scrollTo(0, 0) }
+  const go = (v) => { setView(v); window.scrollTo(0, 0); const u = v.name === 'detail' ? `/product/${v.id}` : '/'; if (location.pathname !== u) history.pushState(null, '', u) }
+  useEffect(() => { // 뒤로가기/앞으로가기 시 URL에 맞춰 화면 복원
+    const onPop = () => { const m = location.pathname.match(/^\/product\/(\d+)\/?$/); setView(m ? { name: 'detail', id: +m[1] } : { name: 'list' }) }
+    addEventListener('popstate', onPop); return () => removeEventListener('popstate', onPop)
+  }, [])
+  useEffect(() => { // 화면 전환 시 title/robots 갱신 (장바구니·결제 등 비공개 화면은 noindex)
+    const p = view.name === 'detail' ? products.find((x) => x.id === view.id) : null
+    document.title = p ? `${p.name} | MONO` : view.name === 'list' ? 'MONO — 매일 입는 베이직 의류 쇼핑몰' : `${{ wish: '찜한 상품', cart: '장바구니', checkout: '주문하기', done: '주문 완료' }[view.name]} | MONO`
+    let m = document.querySelector('meta[name=robots]'); if (m) m.content = ['list', 'detail'].includes(view.name) ? 'index,follow,max-image-preview:large,max-snippet:-1' : 'noindex,nofollow'
+  }, [view])
 
   return (<>
     <header className="top">
@@ -63,9 +72,9 @@ export default function App() {
 function Card({ p, onOpen, wish, toggleWish }) {
   const on = wish.includes(p.id)
   return (<article className="card">
-    <button className="imgbtn" onClick={() => onOpen(p.id)} aria-label={p.name}><Thumb p={p} /></button>
+    <a className="imgbtn" href={`/product/${p.id}`} onClick={(e) => { e.preventDefault(); onOpen(p.id) }} aria-label={p.name}><Thumb p={p} /></a>
     <button className={'heart' + (on ? ' on' : '')} onClick={() => toggleWish(p.id)} aria-label="찜">{on ? '♥' : '♡'}</button>
-    <h3>{p.name}</h3>
+    <h3><a href={`/product/${p.id}`} onClick={(e) => { e.preventDefault(); onOpen(p.id) }}>{p.name}</a></h3>
     <p>{won(p.price)}</p>
     <div className="dots">{p.colors.map((c) => <span key={c} title={c} style={{ background: colorHex(c) }} />)}</div>
   </article>)
